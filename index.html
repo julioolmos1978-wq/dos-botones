@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dos Botones - Un juego interactivo de intuición, reflejos y racha. ¿Serás capaz de adivinar el botón correcto?">
+  <meta name="theme-color" content="#0f172a">
+  <title>Dos Botones — ¿Acertarás o Fallarás?</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Canvas para partículas y confeti -->
+  <canvas id="fx-canvas"></canvas>
+
+  <!-- Fondo dinámico con orbes brillantes -->
+  <div class="ambient-background" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Encabezado superior -->
+    <header class="app-header">
+      <div class="logo-area">
+        <div class="logo-badge">
+          <span class="badge-dot"></span>
+          <span class="badge-text">JUEGO EN VIVO</span>
+        </div>
+        <h1 class="app-title">Dos Botones<span class="highlight">.</span></h1>
+        <p class="app-subtitle">Elige sabiamente. Uno te dará la gloria, el otro te quitará la racha.</p>
+      </div>
+
+      <!-- Barra de herramientas / controles superiores -->
+      <div class="header-actions">
+        <button id="btn-sound-toggle" class="icon-btn" title="Activar/Desactivar sonido" aria-label="Control de sonido">
+          <svg class="icon icon-sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          <svg class="icon icon-sound-off hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button>
+
+        <button id="btn-theme-toggle" class="icon-btn" title="Cambiar tema claro/oscuro" aria-label="Cambiar tema">
+          <svg class="icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="icon icon-moon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <button id="btn-stats-modal" class="icon-btn" title="Ver estadísticas detalladas" aria-label="Ver estadísticas">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Selector de Modos de Juego -->
+    <nav class="mode-selector" aria-label="Modos de juego">
+      <button class="mode-chip active" data-mode="classic" id="mode-classic">
+        <span class="mode-icon">🎲</span>
+        <span class="mode-name">Clásico (Intuición)</span>
+      </button>
+      <button class="mode-chip" data-mode="speed" id="mode-speed">
+        <span class="mode-icon">⚡</span>
+        <span class="mode-name">Contrarreloj</span>
+      </button>
+      <button class="mode-chip" data-mode="trivia" id="mode-trivia">
+        <span class="mode-icon">🧠</span>
+        <span class="mode-name">Duelo de Saber</span>
+      </button>
+    </nav>
+
+    <!-- Panel de Marcadores / Dashboard -->
+    <section class="scoreboard-panel" aria-label="Tablero de puntuación">
+      <div class="score-card">
+        <span class="score-label">PUNTOS</span>
+        <span class="score-value" id="val-score">0</span>
+      </div>
+
+      <div class="score-card streak-card" id="streak-wrapper">
+        <div class="streak-header">
+          <span class="score-label">RACHA ACTUAL</span>
+          <span class="streak-flame" id="streak-flame">🔥</span>
+        </div>
+        <div class="streak-display">
+          <span class="score-value highlight-streak" id="val-streak">0</span>
+          <span class="streak-multiplier" id="val-multiplier">x1.0</span>
+        </div>
+      </div>
+
+      <div class="score-card">
+        <span class="score-label">MEJOR RACHA</span>
+        <div class="best-streak-box">
+          <svg class="trophy-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0 0 11 15.9V19H7v2h10v-2h-4v-3.1c1.8-.46 3.16-1.92 3.61-3.96C19.08 11.63 21 9.55 21 7V5c0-1.1-.9-2-2-2zm-14 3V5h2v4.8c-1.18-.35-2-1.42-2-2.8zm14 0c0 1.38-.82 2.45-2 2.8V5h2v3z"/>
+          </svg>
+          <span class="score-value" id="val-best-streak">0</span>
+        </div>
+      </div>
+
+      <div class="score-card">
+        <span class="score-label">PRECISIÓN</span>
+        <span class="score-value" id="val-accuracy">0%</span>
+      </div>
+    </section>
+
+    <!-- Barra de tiempo (Activa solo en Contrarreloj) -->
+    <div class="timer-container hidden" id="timer-bar-container">
+      <div class="timer-track">
+        <div class="timer-fill" id="timer-bar-fill"></div>
+      </div>
+      <div class="timer-meta">
+        <span>Tiempo restante</span>
+        <span id="timer-text" class="timer-number">3.0s</span>
+      </div>
+    </div>
+
+    <!-- Indicador de Pregunta / Mensaje de Estado -->
+    <div class="prompt-box" id="prompt-box">
+      <div class="prompt-pill" id="prompt-category">Ronda 1</div>
+      <h2 class="prompt-text" id="prompt-text">¿Cuál de los dos botones es el ganador?</h2>
+    </div>
+
+    <!-- Banner de Resultado Animado -->
+    <div class="result-banner idle" id="result-banner" role="status" aria-live="polite">
+      <div class="result-icon-wrap" id="result-icon-wrap">
+        <span class="result-emoji" id="result-emoji">🎯</span>
+      </div>
+      <div class="result-text-group">
+        <span class="result-headline" id="result-headline">¡Elige un botón para comenzar!</span>
+        <span class="result-subtext" id="result-subtext">Confía en tu instinto</span>
+      </div>
+    </div>
+
+    <!-- ÁREA PRINCIPAL: LOS DOS BOTONES -->
+    <main class="buttons-stage" id="buttons-stage">
+      <!-- Botón 1 (Izquierdo) -->
+      <button class="choice-button choice-left" id="btn-choice-1" data-choice="1" aria-label="Opción 1">
+        <div class="button-glow"></div>
+        <div class="button-content">
+          <div class="button-badge">
+            <span class="key-shortcut">Tecla [ 1 ] o [ A ]</span>
+          </div>
+          <div class="choice-icon" id="icon-choice-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </div>
+          <div class="choice-info">
+            <span class="choice-title" id="label-choice-1">BOTÓN ALFA</span>
+            <span class="choice-desc" id="desc-choice-1">Opción Uno</span>
+          </div>
+        </div>
+        <div class="ripple-layer"></div>
+      </button>
+
+      <!-- Divisor central Versus -->
+      <div class="vs-badge" aria-hidden="true">
+        <span>O</span>
+      </div>
+
+      <!-- Botón 2 (Derecho) -->
+      <button class="choice-button choice-right" id="btn-choice-2" data-choice="2" aria-label="Opción 2">
+        <div class="button-glow"></div>
+        <div class="button-content">
+          <div class="button-badge">
+            <span class="key-shortcut">Tecla [ 2 ] o [ D ]</span>
+          </div>
+          <div class="choice-icon" id="icon-choice-2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 3h12l4 6-10 12L2 9z"></path>
+              <path d="M10.5 3L8 9l4 12 4-12-2.5-6"></path>
+            </svg>
+          </div>
+          <div class="choice-info">
+            <span class="choice-title" id="label-choice-2">BOTÓN OMEGA</span>
+            <span class="choice-desc" id="desc-choice-2">Opción Dos</span>
+          </div>
+        </div>
+        <div class="ripple-layer"></div>
+      </button>
+    </main>
+
+    <!-- Controles de Ronda y Reset -->
+    <footer class="app-footer">
+      <div class="footer-left">
+        <span class="keyboard-hint">💡 También puedes jugar con el teclado: <strong>[1 / 2]</strong> o <strong>[← / →]</strong></span>
+      </div>
+      <div class="footer-right">
+        <button id="btn-reset-game" class="secondary-btn" title="Reiniciar estadísticas">
+          <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/>
+          </svg>
+          <span>Reiniciar Racha</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modal de Estadísticas Detalladas -->
+  <div class="modal-backdrop hidden" id="stats-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-title" class="modal-title">Estadísticas de Partida</h3>
+        <button id="btn-close-modal" class="close-btn" aria-label="Cerrar modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-stats-grid">
+          <div class="stat-box">
+            <span class="stat-number" id="stat-total-clicks">0</span>
+            <span class="stat-text">Pulsaciones Totales</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-number color-success" id="stat-total-wins">0</span>
+            <span class="stat-text">Aciertos</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-number color-danger" id="stat-total-losses">0</span>
+            <span class="stat-text">Fallos</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-number color-accent" id="stat-max-streak">0</span>
+            <span class="stat-text">Récord de Racha</span>
+          </div>
+        </div>
+
+        <div class="stat-ratio-bar">
+          <div class="ratio-header">
+            <span>Tasa de Éxito</span>
+            <span id="stat-win-rate">0%</span>
+          </div>
+          <div class="ratio-track">
+            <div class="ratio-fill" id="stat-ratio-fill"></div>
+          </div>
+        </div>
+
+        <div class="stat-theme-selector">
+          <label for="theme-palette-select" class="theme-select-label">Estilo de los Botones:</label>
+          <select id="theme-palette-select" class="custom-select">
+            <option value="cyber">Cian Neón vs Rosa Neón</option>
+            <option value="emerald">Esmeralda vs Amatista</option>
+            <option value="fire-ice">Fuego Solar vs Hielo Glacial</option>
+            <option value="gold-void">Oro Real vs Obsidiana</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-wipe-stats" class="danger-btn">Borrar Historial</button>
+        <button id="btn-modal-ok" class="primary-btn">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
